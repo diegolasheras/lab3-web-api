@@ -12,6 +12,9 @@ import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
+import io.mockk.justRun 
+import io.mockk.every 
+import io.mockk.verify 
 
 private val MANAGER_REQUEST_BODY = { name: String ->
     """
@@ -47,7 +50,14 @@ class ControllerTests {
         // Hint: POST is not idempotent - each call creates a new resource.
         // Think about what the controller does when saving an employee.
         // Consider how to mock the repository to return different results for multiple calls.
-        TODO("Complete the mock setup for POST test")
+
+        every {
+            employeeRepository.save(any<Employee>())
+            } answers {
+            Employee("Mary", "Manager", 1)
+            } andThenAnswer {
+            Employee("Mary", "Manager", 2)
+            }
 
         mvc
             .post("/employees") {
@@ -80,7 +90,15 @@ class ControllerTests {
         // VERIFY - COMPLETE ME!
         // Hint: What repository methods should be called for a POST operation?
         // What methods should NOT be called? Think about the difference between safe and unsafe operations.
-        TODO("Complete the verification for POST test")
+        verify(exactly = 2) {
+            employeeRepository.save(any<Employee>())
+            }
+        
+        verify (exactly = 0) {
+            employeeRepository.findById(any())
+            employeeRepository.deleteById(any())
+            employeeRepository.findAll()
+        }
     }
 
     @Test
